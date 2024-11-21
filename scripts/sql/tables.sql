@@ -1,20 +1,19 @@
 CREATE TABLE users
 (
     id            SERIAL PRIMARY KEY,
-    username      TEXT UNIQUE NOT NULL,
-    password_hash BYTEA       NOT NULL
+    username      VARCHAR(50) UNIQUE NOT NULL,
+    password_hash VARCHAR(255)       NOT NULL
 );
 
 CREATE TABLE files
 (
     id          SERIAL PRIMARY KEY,
     user_id     INTEGER REFERENCES users (id),
-    filename    TEXT    NOT NULL,
-    file_size   INTEGER NOT NULL,
+    filename    VARCHAR(255) NOT NULL,
     upload_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE uptime
+CREATE TABLE server_uptime
 (
     id         SERIAL PRIMARY KEY,
     start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP

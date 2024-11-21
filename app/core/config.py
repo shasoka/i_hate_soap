@@ -17,3 +17,6 @@ JWT_PRIVATE_KEY = (BASE_DIR / "certs" / "jwt_private.pem").read_text()
 JWT_PUBLIC_KEY = (BASE_DIR / "certs" / "jwt_public.pem").read_text()
 JWT_ALGORITHM = "RS256"
 JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", 30))
+
+# TNS
+USERS_TNS = "isd.prac_3.users.service"

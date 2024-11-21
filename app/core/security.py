@@ -2,8 +2,7 @@ import datetime
 
 import bcrypt
 import jwt
-
-from app.core.config import (
+from core.config import (
     JWT_PRIVATE_KEY,
     JWT_PUBLIC_KEY,
     JWT_ALGORITHM,
