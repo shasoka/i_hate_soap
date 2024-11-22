@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<script>
+    const token = localStorage.getItem("token");
+    if (!token) {
+	    alert("Друг, ты что-то перепутал 🤔");
+	    window.location.href = "/login";
+    }
+</script>
+
+<h1>Files</h1>
+<p>Тут чето будет клянусь</p>
+
+{% endblock %}

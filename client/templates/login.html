@@ -2,31 +2,71 @@
 
 {% block content %}
 
-<h1>Вход</h1>
-<form action="/login" method="post">
+<h1 id="topHeader">Вход</h1>
+
+<!-- Форма входа, скрывается при успешном входе -->
+<form id="loginForm" action="/login" method="post">
     <label for="username">Имя пользователя:</label>
     <input type="text" name="username" id="username" required>
 
     <label for="password">Пароль:</label>
     <input type="password" name="password" id="password" required>
 
-    <button type="submit">Вход</button>
+    <button type="submit">Войти</button>
 </form>
+
+{% if message %}
+    <p style="color: green;">{{ message }}</p>
+{% elif error %}
+    <p style="color: red;">{{ error }}</p>
+{% endif %}
+
+<p id="suggest">Нет аккаунта? <a href="/register">Зарегистрироваться</a></p>
+
+{% if soap_body %}
+    <h2>SOAP Request 👤</h2>
+    <pre><code id="soapRequest"
+               class="language-xml">{{ soap_body | e | trim }}</code></pre>
+{% endif %}
 
 {% if soap_response %}
 {% if success == True %}
-	<h2>SOAP Response 🟢</h2>
+        <h2>SOAP Response 🟢</h2>
+        <!-- Скрываем форму и показываем кнопку для перехода далее -->
+        <script>
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('topHeader').style.display = 'none';
+            document.getElementById('suggest').style.display = 'none';
+        </script>
 {% else %}
-	<h2>SOAP Response 🔴</h2>
+        <h2>SOAP Response 🔴</h2>
 {% endif %}
-	<pre><code id="soapResponse"
-	           class="language-xml">{{ soap_response | e }}</code></pre>
+    <pre><code id="soapResponse"
+               class="language-xml">{{ soap_response | e }}</code></pre>
 {% endif %}
 
-<link
-		rel="stylesheet"
-		href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
->
+{% if soap_response %}
+{% if success == True %}
+	<div id="buttonContainer"
+	     style="display: flex; justify-content: space-between; margin-top: 20px;">
+        <button class="redButton" id="logoutButton"
+                onclick="logoutUser()">Выход 🚪</button>
+		<button class="greenButton" id="nextButton"
+		        onclick="window.location.href='/files'">Принято 🫡</button>
+	</div>
+
+{% endif %}
+{% endif %}
+
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script>
+    function logoutUser() {
+	    document.cookie = 'access_token=; Max-Age=0';
+	    document.cookie = 'token_type=; Max-Age=0';
+	    window.location.href = '/login';
+    }
+</script>
 
 {% endblock %}

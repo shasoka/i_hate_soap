@@ -1,6 +1,8 @@
+from jwt import InvalidTokenError
 from spyne import (
     ResourceAlreadyExistsError,
     String,
+    Boolean,
     rpc,
     InvalidCredentialsError,
     Fault,
@@ -9,7 +11,12 @@ from spyne.service import Service
 
 from core.db.models import User
 from core.schemas.jwt import JWTResponse
-from core.security import hash_password, validate_password, encode_jwt
+from core.security import (
+    hash_password,
+    validate_password,
+    encode_jwt,
+    decode_jwt,
+)
 
 
 # noinspection PyMethodParameters
@@ -56,14 +63,38 @@ class UserService(Service):
 
     @rpc(
         String(
-            min_len=5,
-            max_len=50,
+            min_occurs=1,
+            nillable=False,
+        ),  # username
+        _returns=Boolean(
+            nillable=False,
+            min_occurs=1,
+        ),
+    )
+    def check_token(
+        ctx: Service,
+        token: str,
+    ):
+        try:
+            payload: dict = decode_jwt(token)
+        except InvalidTokenError:
+            return False
+
+        if (
+            ctx.udc.session.query(User)
+            .filter(User.id == int(payload["sub"]))
+            .first()
+        ):
+            return True
+
+        return False
+
+    @rpc(
+        String(
             min_occurs=1,
             nillable=False,
         ),  # username
         String(
-            min_len=5,
-            max_len=50,
             min_occurs=1,
             nillable=False,
         ),  # password
