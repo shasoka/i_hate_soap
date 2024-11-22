@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Вход</h1>
+<form action="/login" method="post">
+    <label for="username">Имя пользователя:</label>
+    <input type="text" name="username" id="username" required>
+
+    <label for="password">Пароль:</label>
+    <input type="password" name="password" id="password" required>
+
+    <button type="submit">Вход</button>
+</form>
+
+{% if soap_response %}
+{% if success == True %}
+	<h2>SOAP Response 🟢</h2>
+{% else %}
+	<h2>SOAP Response 🔴</h2>
+{% endif %}
+	<pre><code id="soapResponse"
+	           class="language-xml">{{ soap_response | e }}</code></pre>
+{% endif %}
+
+<link
+		rel="stylesheet"
+		href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+
+{% endblock %}

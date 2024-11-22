@@ -16,7 +16,7 @@ from core.db.defctx import on_method_call, on_method_return_object
 from core.db.models import TableModel
 from services.users import UserService
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 
 class MyApplication(Application):
