@@ -18,7 +18,7 @@ from sqlalchemy import (
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-from ..config import DATABASE_URL, USERS_TNS
+from ..config import DATABASE_URL, MAIN_TNS
 
 # [SQLAlchemy] движок и метаданные
 _engine = create_engine(DATABASE_URL)
@@ -37,14 +37,24 @@ TableModel.Attributes.sqla_metadata.bind = _engine
 
 class User(TableModel):
     __tablename__ = "users"
-    __namespace__ = USERS_TNS
+    __namespace__ = MAIN_TNS
 
-    # id: int = Column(Integer, primary_key=True)
-    # username: str = Column(String(50), unique=True, nullable=False)
-    # password_hash: bytes = Column(LargeBinary, nullable=False)
-    id: int = SpInteger(pk=True, nullable=False)
-    username: str = SpString(50, unique=True, nullable=False)
-    password_hash: bytes = SpByteArray(nullable=False)
+    id: int = SpInteger(
+        pk=True,
+        nullable=False,
+        min_occurs=1,
+    )
+    username: str = SpString(
+        50,
+        unique=True,
+        nullable=False,
+        min_occurs=1,
+        min_len=5,
+    )
+    password_hash: bytes = SpByteArray(
+        nullable=False,
+        min_occurs=1,
+    )
 
 
 # noinspection PyDeprecation

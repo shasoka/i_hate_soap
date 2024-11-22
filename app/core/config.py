@@ -19,4 +19,4 @@ JWT_ALGORITHM = "RS256"
 JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", 30))
 
 # TNS
-USERS_TNS = "isd.prac_3.users.service"
+MAIN_TNS = "isd.prac_3"
