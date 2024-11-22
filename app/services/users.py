@@ -2,7 +2,8 @@ from spyne import (
     ResourceAlreadyExistsError,
     String,
     rpc,
-    ResourceNotFoundError,
+    InvalidCredentialsError,
+    Fault,
 )
 from spyne.service import Service
 
@@ -26,7 +27,10 @@ class UserService(Service):
             min_occurs=1,
             nillable=False,
         ),  # password
-        _returns=User,
+        _returns=User.customize(
+            nillable=False,
+            min_occurs=1,
+        ),
     )
     def register(
         ctx: Service,
@@ -63,13 +67,20 @@ class UserService(Service):
             min_occurs=1,
             nillable=False,
         ),  # password
-        _returns=JWTResponse,
+        _returns=JWTResponse.customize(
+            nillable=False,
+            min_occurs=1,
+        ),
     )
     def login(
         ctx: Service,
         username: str,
         password: str,
     ):
+        auth_fault: Fault = InvalidCredentialsError(
+            "Login or password is invalid"
+        )
+
         # Идентификация
         user = (
             ctx.udc.session.query(User)
@@ -78,10 +89,10 @@ class UserService(Service):
         )
 
         if not user:
-            raise ResourceNotFoundError(username)
+            raise auth_fault
 
         if not validate_password(password, user.password_hash):
-            raise ResourceNotFoundError(username)
+            raise auth_fault
 
         return JWTResponse(
             access_token=encode_jwt(
