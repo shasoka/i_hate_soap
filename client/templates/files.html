@@ -2,14 +2,19 @@
 
 {% block content %}
 <script>
-    const token = localStorage.getItem("token");
-    if (!token) {
-	    alert("Друг, ты что-то перепутал 🤔");
+    const authenticated = {{ 'true' if authenticated else 'false' }};
+    if (!authenticated) {
+	    alert("Друг, ты что-то перепутал с токеном 🤔");
 	    window.location.href = "/login";
     }
 </script>
 
 <h1>Files</h1>
-<p>Тут чето будет клянусь</p>
+<p>Выберите файл для загрузки:</p>
+
+<form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+    <input type="file" name="file" id="fileInput" required>
+    <button type="submit">Загрузить файл</button>
+</form>
 
 {% endblock %}

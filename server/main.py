@@ -14,9 +14,10 @@ from sqlalchemy.exc import NoResultFound
 from core.config import MAIN_TNS
 from core.db.defctx import on_method_call, on_method_return_object
 from core.db.models import TableModel
+from services.files import FileService
 from services.users import UserService
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.CRITICAL)
 
 
 class MyApplication(Application):
@@ -49,6 +50,8 @@ class MyApplication(Application):
             raise
 
         except Exception as e:
+            print(e)
+
             logging.exception(e)
             raise InternalError(e)
 
@@ -66,7 +69,7 @@ if __name__ == "__main__":
     )
 
     application = MyApplication(
-        [UserService],
+        [UserService, FileService],
         tns=MAIN_TNS,
         in_protocol=Soap11(validator="lxml"),
         out_protocol=Soap11(),

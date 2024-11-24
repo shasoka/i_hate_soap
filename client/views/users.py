@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse
 
-from soap_methods import format_xml, extract_token_from_xml
-from soap_methods.users.methods import login_user, register_user
+from soap.user_service import login_user, register_user
+from soap.utils import element_to_string, extract_tag_from_xml
 from . import templates
 
 router = APIRouter()
@@ -22,25 +22,17 @@ async def register(
     username: str = Form(...),
     password: str = Form(...),
 ):
-    body, response = register_user(username, password)
-    formatted_response = format_xml(response.content.decode("utf-8"))
-    if response.status_code == 200:
-        return templates.TemplateResponse(
-            "register.html",
-            {
-                "request": request,
-                "soap_body": body,
-                "soap_response": formatted_response,
-                "success": True,
-            },
-        )
+    body, response, success = register_user(username, password)
+    formatted_request = element_to_string(body)
+    formatted_response = element_to_string(response)
+
     return templates.TemplateResponse(
         "register.html",
         {
             "request": request,
-            "soap_body": body,
+            "soap_body": formatted_request,
             "soap_response": formatted_response,
-            "success": False,
+            "success": success,
         },
     )
 
@@ -59,40 +51,29 @@ async def login(
     username: str = Form(...),
     password: str = Form(...),
 ):
-    body, response = login_user(username, password)
-    formatted_response = format_xml(response.content.decode("utf-8"))
+    body, response, success = login_user(username, password)
+    formatted_request = element_to_string(body)
+    formatted_response = element_to_string(response)
 
-    access_token = extract_token_from_xml(
-        response.content.decode("utf-8"),
-        "access_token",
-    )
-    token_type = extract_token_from_xml(
-        response.content.decode("utf-8"),
-        "token_type",
-    )
+    access_token: str = ""
+    token_type: str = ""
 
-    if response.status_code == 200:
-        # Успешный логин
-        template_response = templates.TemplateResponse(
-            "login.html",
-            {
-                "request": request,
-                "soap_body": body,
-                "soap_response": formatted_response,
-                "success": True,
-            },
-        )
-        template_response.set_cookie(key="access_token", value=access_token)
-        template_response.set_cookie(key="token_type", value=token_type)
-        return template_response
+    if success:
+        access_token = extract_tag_from_xml(response, "access_token")
+        token_type = extract_tag_from_xml(response, "token_type")
 
-    return templates.TemplateResponse(
-        # Неудачный логин
+    template_response = templates.TemplateResponse(
         "login.html",
         {
             "request": request,
-            "soap_body": body,
+            "soap_body": formatted_request,
             "soap_response": formatted_response,
-            "success": False,
+            "success": success,
         },
     )
+
+    if access_token and token_type:
+        template_response.set_cookie(key="access_token", value=access_token)
+        template_response.set_cookie(key="token_type", value=token_type)
+
+    return template_response
