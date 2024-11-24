@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, UploadFile
 from fastapi.responses import HTMLResponse
 
+from soap.file_service import upload_file
 from soap.user_service import check_token
 from . import templates
 
@@ -26,4 +27,14 @@ async def show_files(request: Request):
             "request": request,
             "authenticated": True,
         },
+    )
+
+
+@router.post("/upload")
+async def post_file(file: UploadFile, request: Request):
+    return await upload_file(
+        file=file,
+        header=request.cookies.get("token_type")
+        + " "
+        + request.cookies.get("access_token"),
     )

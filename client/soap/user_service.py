@@ -3,9 +3,6 @@ from lxml.etree import _Element
 from .utils import extract_tag_from_xml
 from .zeep import client, plugin
 
-SOAP_URL = "http://localhost:8000/"
-headers: dict = {"Content-Type": "text/xml"}
-
 
 def register_user(
     username: str,

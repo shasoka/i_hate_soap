@@ -5,13 +5,12 @@ from spyne import (
     Integer as SpInteger,
     String as SpString,
     ByteArray as SpByteArray,
+    DateTime as SpDateTime,
 )
 from sqlalchemy import (
     create_engine,
     Column,
     Integer,
-    String,
-    ForeignKey,
     TIMESTAMP,
     func,
 )
@@ -35,6 +34,30 @@ TableModel = TTableModel()
 TableModel.Attributes.sqla_metadata.bind = _engine
 
 
+class File(TableModel):
+    __tablename__ = "files"
+    __namespace__ = MAIN_TNS
+
+    id: int = SpInteger(
+        pk=True,
+        nullable=False,
+        min_occurs=1,
+    )
+    filename: str = SpString(
+        255,
+        unique=True,
+        nullable=False,
+        min_occurs=1,
+        default="anonymous_file",
+    )
+    upload_time: datetime = SpDateTime()
+
+    user_id: int = SpInteger(
+        nullable=False,
+        min_occurs=1,
+    )
+
+
 class User(TableModel):
     __tablename__ = "users"
     __namespace__ = MAIN_TNS
@@ -54,20 +77,6 @@ class User(TableModel):
     password_hash: bytes = SpByteArray(
         nullable=False,
         min_occurs=1,
-    )
-
-
-# noinspection PyDeprecation
-class File(DeclarativeBase):
-    __tablename__ = "files"
-
-    id: int = Column(Integer, primary_key=True)
-    user_id: int = Column(Integer, ForeignKey("users.id"))
-    filename: str = Column(String(255), nullable=False)
-    upload_time: datetime = Column(
-        TIMESTAMP,
-        server_default=func.now(),
-        default=datetime.datetime.utcnow,
     )
 
 

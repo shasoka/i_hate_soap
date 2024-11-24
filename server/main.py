@@ -1,44 +1,30 @@
 import logging
-from wsgiref.simple_server import make_server
+import sys
 
-from spyne import (
-    Application,
-    ResourceNotFoundError,
-    Fault,
-    InternalError,
-)
+from spyne import Application, Fault, InternalError, ResourceNotFoundError
 from spyne.protocol.soap import Soap11
 from spyne.server.wsgi import WsgiApplication
 from sqlalchemy.exc import NoResultFound
+from twisted.internet import reactor
+from twisted.python import log
+from twisted.web.server import Site
+from twisted.web.wsgi import WSGIResource
 
 from core.config import MAIN_TNS
-from core.db.defctx import on_method_call, on_method_return_object
-from core.db.models import TableModel
+from core.db.defctx import on_method_call
 from services.files import FileService
 from services.users import UserService
 
-logging.basicConfig(level=logging.CRITICAL)
 
-
+# Класс приложения, который расширяет Spyne Application
 class MyApplication(Application):
     def __init__(
-        self,
-        services,
-        tns,
-        name=None,
-        in_protocol=None,
-        out_protocol=None,
+        self, services, tns, name=None, in_protocol=None, out_protocol=None
     ):
-        super(MyApplication, self).__init__(
-            services,
-            tns,
-            name,
-            in_protocol,
-            out_protocol,
-        )
+        super().__init__(services, tns, name, in_protocol, out_protocol)
 
     def call_wrapper(self, ctx):
-        # SOAP поддерживает только 2** и 5** коды
+        # SOAP поддерживает только 2** и 5** коды ошибок
         try:
             return ctx.service_class.call_wrapper(ctx)
 
@@ -50,24 +36,18 @@ class MyApplication(Application):
             raise
 
         except Exception as e:
-            print(e)
-
             logging.exception(e)
             raise InternalError(e)
 
 
+# Основная асинхронная часть
 if __name__ == "__main__":
-    # noinspection PyUnresolvedReferences
-    UserService.event_manager.add_listener(
-        "method_call",
-        on_method_call,
-    )
-    # noinspection PyUnresolvedReferences
-    UserService.event_manager.add_listener(
-        "method_return_object",
-        on_method_return_object,
-    )
+    # Настройка логирования
+    logging.basicConfig(level=logging.WARNING)
+    observer = log.PythonLoggingObserver("twisted")
+    log.startLogging(sys.stdout)
 
+    # Создаём приложение с нужными сервисами и протоколами
     application = MyApplication(
         [UserService, FileService],
         tns=MAIN_TNS,
@@ -75,12 +55,16 @@ if __name__ == "__main__":
         out_protocol=Soap11(),
     )
 
+    # Добавляем слушателя для событий
+    application.event_manager.add_listener("method_call", on_method_call)
+
     wsgi_app = WsgiApplication(application)
-    server = make_server("127.0.0.1", 8000, wsgi_app)
+    resource = WSGIResource(reactor, reactor, wsgi_app)
+    site = Site(resource)
+    reactor.listenTCP(8000, site, interface="127.0.0.1")  # noqa
 
-    TableModel.Attributes.sqla_metadata.create_all()
+    # Запуск асинхронного приложения на порту 8000
+    log.msg("🧼 Listening to http://127.0.0.1:8000")  # Добавим эмодзи с мылом
+    log.msg("📝 WSDL is at http://127.0.0.1:8000/?wsdl")
 
-    print("🧼 Listening to http://127.0.0.1:8000")
-    print("📝 WSDL is at http://127.0.0.1:8000/?wsdl")
-
-    server.serve_forever()
+    sys.exit(reactor.run())  # noqa

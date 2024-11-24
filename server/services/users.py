@@ -3,8 +3,6 @@ from spyne import (
     String,
     Boolean,
     rpc,
-    InvalidCredentialsError,
-    Fault,
 )
 from spyne.service import Service
 
@@ -15,6 +13,7 @@ from core.security import (
     validate_password,
     encode_jwt,
     get_current_auth_user,
+    AuthFault,
 )
 
 
@@ -79,10 +78,6 @@ class UserService(Service):
         username: str,
         password: str,
     ):
-        auth_fault: Fault = InvalidCredentialsError(
-            "Login or password is invalid"
-        )
-
         # Идентификация
         user = (
             ctx.udc.session.query(User)
@@ -91,10 +86,10 @@ class UserService(Service):
         )
 
         if not user:
-            raise auth_fault
+            raise AuthFault
 
         if not validate_password(password, user.password_hash):
-            raise auth_fault
+            raise AuthFault
 
         return JWTResponse(
             access_token=encode_jwt(

@@ -8,6 +8,7 @@ load_dotenv()
 
 # Основные пути
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+UPLOADS_DIR = BASE_DIR / "server" / "uploads"
 
 # База данных
 DATABASE_URL = os.getenv("DATABASE_URL")

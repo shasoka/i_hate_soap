@@ -3,6 +3,7 @@ import datetime
 import bcrypt
 import jwt
 from jwt import InvalidTokenError
+from spyne import Fault, InvalidCredentialsError
 from spyne.service import Service
 
 from core.config import (
@@ -12,6 +13,9 @@ from core.config import (
     JWT_EXPIRE_MINUTES,
 )
 from core.db.models import User
+
+AuthFault: Fault = InvalidCredentialsError("Login or password is invalid")
+CredentialsFault: Fault = InvalidCredentialsError("Unathorized")
 
 
 # Хэширование пароля
@@ -39,13 +43,20 @@ def decode_jwt(token: str) -> dict:
 
 
 def get_current_auth_user(ctx: Service, token: str) -> User:
-    try:
-        payload: dict = decode_jwt(token)
-    except InvalidTokenError as e:
-        raise e
+    if token is None:
+        raise CredentialsFault
 
-    return (
-        ctx.udc.session.query(User)
-        .filter(User.id == int(payload["sub"]))
-        .first()
-    )
+    if isinstance(token, str):
+        if token.startswith("Bearer "):
+            token = token[7:]
+
+        try:
+            payload: dict = decode_jwt(token)
+        except InvalidTokenError:
+            raise CredentialsFault
+
+        return (
+            ctx.udc.session.query(User)
+            .filter(User.id == int(payload["sub"]))
+            .first()
+        )
