@@ -16,7 +16,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/")
 async def root():
-    return RedirectResponse(url="/login")
+    return RedirectResponse(url="/files")
 
 
 if __name__ == "__main__":
