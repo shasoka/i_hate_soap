@@ -103,12 +103,21 @@ p {
     font-size: 14px;
 }
 
-p[style="color: green;"] {
-    color: #4CAF50;
-    font-weight: bold;
+.floating-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #af4c5b;
+    color: white;
+    border: none;
+    padding: 15px 20px;
+    border-radius: 0.5rem;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s ease;
 }
 
-p[style="color: red;"] {
-    color: #e74c3c;
-    font-weight: bold;
+.floating-button:hover {
+    background-color: #d32f2f;
 }

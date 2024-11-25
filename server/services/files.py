@@ -33,7 +33,7 @@ class FileService(Service):
         # Here should be _mtom=True but sometimes it corrupts outcoming
         # envelope so in the last closing tag it looks like '</soap1' :/
         # Anyway Spyne converts MTOM attachments by their CID and MIMES to
-        # base64 before proceeding the request.
+        # base64 before proceeding the request even without _mtom=True.
     )
     def upload_file(ctx: Service, filename: str, content: tuple[bytes]):
         user = FileService._authenticate_user(ctx)

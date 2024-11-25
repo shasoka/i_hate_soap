@@ -34,16 +34,26 @@
 {% if soap_response %}
 	<div id="buttonContainer"
 	     style="display: flex; justify-content: space-between; margin-top: 20px;">
-        <button class="redButton" id="logoutButton"
-                onclick="logoutUser()">Назад 🔙</button>
+        <button class="redButton" id="getBackButton"
+                onclick="backToMainPage()">Назад 🔙</button>
 	</div>
 {% endif %}
+
+<button class="floating-button" id="logoutButton">На выход! 🚪</button>
+<script>
+    document.getElementById('logoutButton').addEventListener('click', function () {
+	    document.cookie.split(';').forEach(function (c) {
+		    document.cookie = c.trim().split('=')[0] + '=;expires=' + new Date(0).toUTCString() + ';path=/';
+	    });
+	    window.location.href = "/login";
+    });
+</script>
 
 <link rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
 <script>
-    function logoutUser() {
+    function backToMainPage() {
 	    window.location.href = '/files';
     }
 </script>
