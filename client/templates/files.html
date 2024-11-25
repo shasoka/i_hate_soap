@@ -1,20 +1,51 @@
 {% extends "base.html" %}
 
 {% block content %}
-<script>
-    const authenticated = {{ 'true' if authenticated else 'false' }};
-    if (!authenticated) {
-	    alert("Друг, ты что-то перепутал с токеном 🤔");
-	    window.location.href = "/login";
-    }
-</script>
+<h1 id="filesHeader">Files</h1>
+<p id="selectFile">Выберите файл для загрузки:</p>
 
-<h1>Files</h1>
-<p>Выберите файл для загрузки:</p>
-
-<form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+<form id="uploadForm" action="/files" method="post"
+      enctype="multipart/form-data">
     <input type="file" name="file" id="fileInput" required>
     <button type="submit">Загрузить файл</button>
 </form>
+
+{% if soap_body %}
+    <h2>SOAP Request 👤</h2>
+    <pre><code id="soapRequest"
+               class="language-xml">{{ soap_body | e | trim }}</code></pre>
+{% endif %}
+
+{% if soap_response %}
+{% if success == True %}
+        <h2>SOAP Response 🟢</h2>
+{% else %}
+        <h2>SOAP Response 🔴</h2>
+{% endif %}
+    <pre><code id="soapResponse"
+               class="language-xml">{{ soap_response | e }}</code></pre>
+	<script>
+        document.getElementById('uploadForm').style.display = 'none';
+        document.getElementById('selectFile').style.display = 'none';
+        document.getElementById('filesHeader').style.display = 'none';
+    </script>
+{% endif %}
+
+{% if soap_response %}
+	<div id="buttonContainer"
+	     style="display: flex; justify-content: space-between; margin-top: 20px;">
+        <button class="redButton" id="logoutButton"
+                onclick="logoutUser()">Назад 🔙</button>
+	</div>
+{% endif %}
+
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script>
+    function logoutUser() {
+	    window.location.href = '/files';
+    }
+</script>
 
 {% endblock %}

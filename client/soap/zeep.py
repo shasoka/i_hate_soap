@@ -1,19 +1,6 @@
 from lxml import etree
-from zeep import Client as SOAPClient, Plugin
-
-
-class RequestsLoggerPlugin(Plugin):
-    def __init__(self):
-        self.last_request = None
-        self.last_response = None
-
-    def ingress(self, envelope, http_headers, operation):
-        self.last_response = envelope
-        return envelope, http_headers
-
-    def egress(self, envelope, http_headers, operation, binding_options):
-        self.last_request = envelope
-        return envelope, http_headers
+from zeep import Client as SOAPClient
+from zeep.plugins import HistoryPlugin
 
 
 def gen_auth_header(value: str):
@@ -26,9 +13,9 @@ def gen_auth_header(value: str):
     return auth_header
 
 
-plugin = RequestsLoggerPlugin()
+plugin = HistoryPlugin()
 wsdl = "http://localhost:8000/?wsdl"
-client = SOAPClient(
+default_client = SOAPClient(
     wsdl=wsdl,
     plugins=[plugin],
 )

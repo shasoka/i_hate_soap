@@ -1,27 +1,46 @@
+from io import BytesIO
+
 from fastapi import UploadFile
-from zeep.exceptions import Fault
+from lxml.etree import _Element
+from pymtom_xop import MtomAttachment, MtomTransport
+from requests import Response
+from zeep import Client
 
-from .zeep import client, gen_auth_header
+from .utils import fastapi_file_type_to_bytesio
+from .zeep import gen_auth_header, plugin
 
 
-async def upload_file(
+def upload_file(
     file: UploadFile,
     header: str = "",
+) -> (
+    _Element,
+    _Element,
+    bool,
 ):
-    try:
-        file_content = await file.read()
-        with client.settings(raw_response=True):
-            response = client.service.upload_file(
-                filename=file.filename,
-                content=file_content,
-                _soapheaders=[gen_auth_header(header)],
-            )
+    # Создание MTOM-вложения
+    bytes_io: BytesIO = fastapi_file_type_to_bytesio(file)
+    attachment = MtomAttachment(bytes_io, file.filename)
+    mtom_transport = MtomTransport()
+    mtom_transport.add_files(files=[attachment])
+    bytes_io.close()
 
-        return {
-            "status": "Файл успешно отправлен на сервер",
-            "server_response": response.content,
-        }
+    # Создание MTOM-клиента
+    mtom_client = Client(
+        wsdl="http://localhost:8000/?wsdl",
+        transport=mtom_transport,
+        plugins=[plugin],
+    )
 
-    except Fault as e:
-        # Обработка ошибок SOAP
-        return {"status": "Ошибка", "detail": str(e)}
+    with mtom_client.settings(raw_response=True):
+        response: Response = mtom_client.service.upload_file(
+            filename=file.filename,
+            content=attachment.get_cid(),
+            _soapheaders=[gen_auth_header(header)],
+        )
+
+    success: bool = True if response.status_code == 200 else False
+
+    request_body = plugin.last_sent["envelope"]
+    response_body = response.content.decode("utf-8")
+    return request_body, response_body, success

@@ -4,7 +4,6 @@
 
 <h1 id="topHeader">Вход</h1>
 
-<!-- Форма входа, скрывается при успешном входе -->
 <form id="loginForm" action="/login" method="post">
     <label for="username">Имя пользователя:</label>
     <input type="text" name="username" id="username" required>
@@ -14,12 +13,6 @@
 
     <button type="submit">Войти</button>
 </form>
-
-{% if message %}
-    <p style="color: green;">{{ message }}</p>
-{% elif error %}
-    <p style="color: red;">{{ error }}</p>
-{% endif %}
 
 <p id="suggest">Нет аккаунта? <a href="/register">Зарегистрироваться</a></p>
 

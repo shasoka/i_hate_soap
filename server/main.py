@@ -10,7 +10,12 @@ from twisted.python import log
 from twisted.web.server import Site
 from twisted.web.wsgi import WSGIResource
 
-from core.config import MAIN_TNS
+from core.config import (
+    MAIN_TNS,
+    MAX_ENVELOPE_SIZE,
+    SOAP_SVC_HOST,
+    SOAP_SVC_PORT,
+)
 from core.db.defctx import on_method_call
 from services.files import FileService
 from services.users import UserService
@@ -28,26 +33,26 @@ class MyApplication(Application):
         try:
             return ctx.service_class.call_wrapper(ctx)
 
-        except NoResultFound:
+        except NoResultFound as e:
+            log.msg(e)
             raise ResourceNotFoundError(ctx.in_object)
 
         except Fault as e:
-            logging.error(e)
+            log.msg(e)
             raise
 
         except Exception as e:
-            logging.exception(e)
+            log.msg(e)
             raise InternalError(e)
 
 
 # Основная асинхронная часть
 if __name__ == "__main__":
-    # Настройка логирования
-    logging.basicConfig(level=logging.WARNING)
+    logging.basicConfig(level=logging.CRITICAL)
     observer = log.PythonLoggingObserver("twisted")
+    logging.getLogger("spyne.protocol.xml").setLevel(logging.DEBUG)
     log.startLogging(sys.stdout)
 
-    # Создаём приложение с нужными сервисами и протоколами
     application = MyApplication(
         [UserService, FileService],
         tns=MAIN_TNS,
@@ -55,16 +60,17 @@ if __name__ == "__main__":
         out_protocol=Soap11(),
     )
 
-    # Добавляем слушателя для событий
     application.event_manager.add_listener("method_call", on_method_call)
 
-    wsgi_app = WsgiApplication(application)
+    wsgi_app = WsgiApplication(
+        application,
+        max_content_length=MAX_ENVELOPE_SIZE,
+    )
     resource = WSGIResource(reactor, reactor, wsgi_app)
     site = Site(resource)
-    reactor.listenTCP(8000, site, interface="127.0.0.1")  # noqa
+    reactor.listenTCP(SOAP_SVC_PORT, site, interface=SOAP_SVC_HOST)  # noqa
 
-    # Запуск асинхронного приложения на порту 8000
-    log.msg("🧼 Listening to http://127.0.0.1:8000")  # Добавим эмодзи с мылом
+    log.msg("🧼 Listening to http://127.0.0.1:8000")
     log.msg("📝 WSDL is at http://127.0.0.1:8000/?wsdl")
 
     sys.exit(reactor.run())  # noqa
