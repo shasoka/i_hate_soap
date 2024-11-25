@@ -53,7 +53,21 @@ def extract_tag_from_xml(
         xml_str = element_to_string(et_elem)
         xml_str_without_declaration = "\n".join(xml_str.split("\n")[1:])
         root = etree.fromstring(xml_str_without_declaration)
-        # Ищем элемент с нужным тегом
+        for element in root.iter():
+            if element.tag.endswith(target_tag):
+                return element.text
+    except Exception as e:
+        print(f"Ошибка при извлечении токена: {e}")
+    return ""
+
+
+def extract_tag_from_str(
+    xml_str: str,
+    target_tag: str,
+) -> str:
+    try:
+        xml_str_without_declaration = "\n".join(xml_str.split("\n")[1:])
+        root = etree.fromstring(xml_str_without_declaration)
         for element in root.iter():
             if element.tag.endswith(target_tag):
                 return element.text

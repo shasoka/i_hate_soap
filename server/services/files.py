@@ -3,6 +3,7 @@ import json
 import uuid
 from pathlib import Path
 
+import requests
 from spyne import rpc, String, ByteArray
 from spyne.error import RequestTooLongError, ArgumentError
 from spyne.service import Service
@@ -153,11 +154,30 @@ class FileService(Service):
         base_name, ext = filepath.stem, filepath.suffix
         counter = 1
 
+        suffixed: bool = False
         while filepath.exists():
             filepath = user_dir / f"{base_name} ({counter}){ext}"
+            suffixed = True
             counter += 1
 
+        if suffixed:
+            log.msg(
+                f"[DEFERRED] File with name '{filename}' already exists. "
+                f"Renaming to '{filepath.name}'."
+            )
+
         return filepath
+
+    @staticmethod
+    def _notify_upload_progress(uid: str, uploaded: int, total: int) -> None:
+        progress = {"uid": uid, "uploaded": uploaded, "total": total}
+        try:
+            requests.post(
+                f"http://localhost:7999/upload/{uid}",
+                json=progress,
+            )
+        except Exception as e:
+            log.msg(f"[NOTIFY] Failed to notify client: {e}")
 
     @staticmethod
     def _create_temp_file(user_dir: Path, uid: str, size: int) -> Path:
@@ -193,6 +213,12 @@ class FileService(Service):
 
                 f.write(chunk)
                 uploaded += len(chunk)
+
+                FileService._notify_upload_progress(
+                    uid,
+                    uploaded,
+                    total_size,
+                )
 
                 with open(temp_file, "r+b") as temp:
                     temp.truncate(total_size - uploaded)

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Загрузка файла</h1>
+
+<div style="width: 100%; background-color: #f4f4f9; border-radius: 8px; overflow: hidden;">
+    <div id="progress-bar"
+         style="width: 0; background-color: #4CAF50; text-align: center; padding: 10px; color: white; transition: width 0.5s;">
+        0%
+    </div>
+</div>
+
+<p>Идентификатор загрузки: <strong>{{ uid }}</strong></p>
+<p id="status-message">Ожидание начала загрузки...</p>
+
+<script>
+    const progressBar = document.getElementById("progress-bar");
+    const statusMessage = document.getElementById("status-message");
+    const uid = "{{ uid }}"; // Уникальный идентификатор, переданный сервером
+
+    const ws = new WebSocket(`ws://localhost:7999/ws/${uid}`);
+
+    ws.onmessage = function (event) {
+	    const data = JSON.parse(event.data);
+	    const progress = (data.uploaded / data.total) * 100;
+
+	    progressBar.style.width = progress + "%";
+	    progressBar.innerText = Math.floor(progress) + "%";
+
+	    statusMessage.innerText = `Загружено ${data.uploaded} из ${data.total} байт`;
+
+	    if (progress >= 100) {
+		    ws.close(); // Закрыть WebSocket после завершения
+		    statusMessage.innerText = "Загрузка завершена!";
+	    }
+    };
+
+    ws.onclose = function () {
+	    console.log("WebSocket закрыт.");
+    };
+
+    ws.onerror = function (error) {
+	    console.error("Ошибка WebSocket:", error);
+	    statusMessage.innerText = "Произошла ошибка соединения.";
+    };
+</script>
+{% endblock %}

@@ -36,6 +36,10 @@
 	     style="display: flex; justify-content: space-between; margin-top: 20px;">
         <button class="redButton" id="getBackButton"
                 onclick="backToMainPage()">Назад 🔙</button>
+		{% if success == True %}
+		<button class="redButton" id="seeStatusButton"
+		        onclick="seeStatus()">Ну как там ⏭️</button>
+		{% endif %}
 	</div>
 {% endif %}
 
@@ -55,6 +59,10 @@
 <script>
     function backToMainPage() {
 	    window.location.href = '/files';
+    }
+
+    function seeStatus() {
+	    window.location.href = "{{ upload_url }}";
     }
 </script>
 
