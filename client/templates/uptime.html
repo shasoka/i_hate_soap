@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<h1>Грузим CSV!</h1>
+<h1>Живо ли мыло?</h1>
 
 {% if soap_body %}
     <h2>SOAP Request 📄</h2>
@@ -25,11 +25,6 @@
 <div id="buttonContainer">
 	<button class="redButton" id="nextButton"
 	        onclick="window.location.href='/files'">На главную 🧼</button>
-	{% if download_link %}
-	    <a href="{{ download_link }}">
-	        <button class="greenButton">Загрузить CSV файл 📥</button>
-	    </a>
-	{% endif %}
 </div>
 
 <button class="floating-button" id="logoutButton">На выход! 🚪</button>

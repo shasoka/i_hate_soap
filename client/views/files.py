@@ -152,6 +152,16 @@ def get_files_csv(request: Request):
             },
         )
 
+    return templates.TemplateResponse(
+        "csv.html",
+        {
+            "request": request,
+            "soap_body": formatted_request,
+            "soap_response": formatted_response,
+            "success": success,
+        },
+    )
+
 
 @router.get("/download")
 def download_file(
