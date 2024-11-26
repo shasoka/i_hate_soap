@@ -1,9 +1,17 @@
+import base64
+import os
+import tempfile
+
 from fastapi import APIRouter, Request, UploadFile, WebSocket, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 from starlette.responses import RedirectResponse
 
-from soap.file_service import upload_file, get_last
-from soap.utils import element_to_string, extract_tag_from_str
+from soap.file_service import upload_file, get_last, get_csv
+from soap.utils import (
+    element_to_string,
+    extract_tag_from_str,
+    extract_tag_from_xml,
+)
 from websocket.manager import connection_manager
 from . import templates
 
@@ -98,4 +106,62 @@ def get_last_upload(request: Request):
             "soap_response": formatted_response,
             "success": success,
         },
+    )
+
+
+@router.get("/csv")
+def get_files_csv(request: Request):
+    body, response, success = get_csv(
+        header=str(request.cookies.get("token_type"))
+        + " "
+        + str(request.cookies.get("access_token"))
+    )
+
+    formatted_request = element_to_string(body)
+    formatted_response = element_to_string(response)
+
+    if success:
+        fname: str = extract_tag_from_xml(response, "name")
+        mime: str = extract_tag_from_xml(response, "type")
+        fcontent: bytes = base64.b64decode(
+            extract_tag_from_xml(
+                response,
+                "data",
+            )
+        )
+
+        # Сохранение во временный файл
+        with tempfile.NamedTemporaryFile(
+            delete=False,
+            mode="wb",
+        ) as tmp_file:
+            tmp_file.write(fcontent)
+            tmp_file = tmp_file.name
+
+        return templates.TemplateResponse(
+            "csv.html",
+            {
+                "request": request,
+                "soap_body": formatted_request,
+                "soap_response": formatted_response,
+                "success": success,
+                "download_link": f"/download"
+                f"?tmp_file={os.path.basename(tmp_file)}"
+                f"&original_fname={fname}"
+                f"&mime={mime}",
+            },
+        )
+
+
+@router.get("/download")
+def download_file(
+    tmp_file: str,
+    original_fname: str,
+    mime: str,
+):
+    file_path = os.path.join(tempfile.gettempdir(), tmp_file)
+    return FileResponse(
+        file_path,
+        media_type=mime,
+        filename=original_fname,
     )

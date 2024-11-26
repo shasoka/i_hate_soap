@@ -308,8 +308,8 @@ class FileService(Service):
         )
 
     @rpc(_returns=_FileValue)
-    def get_all_files_csv_mtom(ctx: Service):
-        # authenticate_user(ctx)
+    def get_all_files_csv(ctx: Service):
+        authenticate_user(ctx)
 
         files: list[File] = ctx.udc.session.query(File).all()
 

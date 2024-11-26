@@ -58,3 +58,16 @@ def get_last(header: str) -> (_Element, _Element, bool):
         request_body = plugin.last_sent["envelope"]
         response_body = plugin.last_received["envelope"]
         return request_body, response_body, success
+
+
+def get_csv(header: str) -> (_Element, _Element, bool):
+    success: bool = True
+    try:
+        main_client.service.get_all_files_csv(
+            _soapheaders=[gen_auth_header(header)],
+        )
+        success = True
+    finally:
+        request_body = plugin.last_sent["envelope"]
+        response_body = plugin.last_received["envelope"]
+        return request_body, response_body, success
