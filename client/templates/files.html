@@ -7,13 +7,17 @@
 <form id="uploadForm" action="/files" method="post"
       enctype="multipart/form-data">
     <input type="file" name="file" id="fileInput" required>
-    <button type="submit">Загрузить файл</button>
+    <button type="submit">Загрузить файл ✈️</button>
 </form>
 
-<hr style="margin: 20px 0; border: 1px solid #ccc;">
+<hr id="hr" style="margin: 20px 0; border: 1px solid #ccc;">
 
-<button class="yellowButton"
+<button id="getLastUploadButton" class="yellowButton"
         onclick="viewLastFile()">Просмотреть последний 📂</button>
+
+<button id="getCSVButton" class="yellowButton"
+        style="margin-top: 10px"
+        onclick="getFilesCSV()">Сейчас я буду скачивать все файлы (в CSV) 👹</button>
 
 
 {% if soap_body %}
@@ -34,12 +38,13 @@
         document.getElementById('uploadForm').style.display = 'none';
         document.getElementById('selectFile').style.display = 'none';
         document.getElementById('filesHeader').style.display = 'none';
+        document.getElementById('getLastUploadButton').style.display = 'none';
+        document.getElementById('hr').style.display = 'none';
     </script>
 {% endif %}
 
 {% if soap_response %}
-	<div id="buttonContainer"
-	     style="display: flex; justify-content: space-between; margin-top: 20px;">
+	<div id="buttonContainer">
         <button class="redButton" id="getBackButton"
                 onclick="backToMainPage()">Назад 🔙</button>
 		{% if success == True %}
@@ -73,6 +78,10 @@
 
     function viewLastFile() {
 	    window.location.href = '/last_upload';
+    }
+
+    function getFilesCSV() {
+	    window.location.href = '/csv';
     }
 </script>
 

@@ -290,7 +290,7 @@ class FileService(Service):
 
     # ---------------------------------------------- #
 
-    @rpc(_returns=_FileValue.customize(min_occurs=1))
+    @rpc(_returns=File.customize(min_occurs=1))
     def get_last_uploaded_file(ctx: Service):
         user: User = authenticate_user(ctx)
 

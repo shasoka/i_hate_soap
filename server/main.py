@@ -1,4 +1,5 @@
 import logging
+import signal
 import sys
 
 from spyne import Application, Fault, InternalError, ResourceNotFoundError
@@ -18,6 +19,7 @@ from core.config import (
     LOG_LEVEL,
 )
 from core.db.defctx import on_method_call
+from core.db.lifespan import on_shutdown, on_startup
 from services.files import FileService
 from services.users import UserService
 
@@ -47,7 +49,14 @@ class MyApplication(Application):
             raise InternalError(e)
 
 
-# Основная асинхронная часть
+def shutdown_gracefully(signum, frame):
+    log.msg(
+        f"[LIFESPAN] Received signal {signum}, shutting down gracefully..."
+    )
+    on_shutdown()
+    reactor.stop()  # noqa
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.CRITICAL)
     logging.getLogger("spyne.protocol.xml").setLevel(LOG_LEVEL)
@@ -73,5 +82,10 @@ if __name__ == "__main__":
 
     log.msg("🧼 Listening to http://127.0.0.1:8000")
     log.msg("📝 WSDL is at http://127.0.0.1:8000/?wsdl")
+
+    # Uptime
+    signal.signal(signal.SIGINT, shutdown_gracefully)  # Ctrl+C
+    signal.signal(signal.SIGTERM, shutdown_gracefully)  # Termination
+    on_startup()
 
     sys.exit(reactor.run())  # noqa

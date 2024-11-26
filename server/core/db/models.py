@@ -9,10 +9,6 @@ from spyne import (
 )
 from sqlalchemy import (
     create_engine,
-    Column,
-    Integer,
-    TIMESTAMP,
-    func,
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -84,12 +80,20 @@ class User(TableModel):
 
 
 # noinspection PyDeprecation
-class ServerUptime(DeclarativeBase):
+class ServerUptime(TableModel):
     __tablename__ = "server_uptime"
+    __namespace__ = MAIN_TNS
 
-    id: int = Column(Integer, primary_key=True)
-    start_time: datetime = Column(
-        TIMESTAMP,
-        server_default=func.now(),
-        default=datetime.datetime.utcnow,
+    id: int = SpInteger(
+        pk=True,
+        nullable=False,
+        min_occurs=1,
+    )
+    start_time: datetime = SpDateTime(
+        min_occurs=1,
+        nullable=False,
+    )
+    death_time: datetime = SpDateTime(
+        min_occurs=1,
+        nullable=False,
     )
