@@ -17,11 +17,32 @@
     const progressBar = document.getElementById("progress-bar");
     const statusMessage = document.getElementById("status-message");
     const uid = "{{ uid }}"; // Уникальный идентификатор, переданный сервером
+    const WS_TIMEOUT = 10000; // Время в миллисекундах, например, 10 секунд
 
     const ws = new WebSocket(`ws://localhost:7999/ws/${uid}`);
 
+    let timeoutId;
+
+    function startTimeout() {
+	    clearTimeout(timeoutId);
+	    timeoutId = setTimeout(() => {
+		    alert("Превышено время ожидания ответа от сервера");
+		    ws.close();  // Закройте соединение, если это необходимо
+	    }, WS_TIMEOUT);
+    }
+
     ws.onmessage = function (event) {
 	    const data = JSON.parse(event.data);
+
+	    if (data.alert) {
+		    alert(data.alert);
+		    console.warn(data.alert);
+		    return;
+	    }
+
+	    // Сброс таймера при получении сообщения
+	    startTimeout();
+
 	    const progress = (data.uploaded / data.total) * 100;
 
 	    progressBar.style.width = progress + "%";
@@ -35,13 +56,19 @@
 	    }
     };
 
+    ws.onopen = function () {
+	    startTimeout(); // Запуск таймера, когда соединение открыто
+    };
+
     ws.onclose = function () {
 	    console.log("WebSocket закрыт.");
+	    clearTimeout(timeoutId);
     };
 
     ws.onerror = function (error) {
 	    console.error("Ошибка WebSocket:", error);
 	    statusMessage.innerText = "Произошла ошибка соединения.";
+	    clearTimeout(timeoutId);
     };
 </script>
 {% endblock %}

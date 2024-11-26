@@ -15,6 +15,7 @@ from core.config import (
     MAX_ENVELOPE_SIZE,
     SOAP_SVC_HOST,
     SOAP_SVC_PORT,
+    LOG_LEVEL,
 )
 from core.db.defctx import on_method_call
 from services.files import FileService
@@ -49,8 +50,8 @@ class MyApplication(Application):
 # Основная асинхронная часть
 if __name__ == "__main__":
     logging.basicConfig(level=logging.CRITICAL)
+    logging.getLogger("spyne.protocol.xml").setLevel(LOG_LEVEL)
     observer = log.PythonLoggingObserver("twisted")
-    logging.getLogger("spyne.protocol.xml").setLevel(logging.DEBUG)
     log.startLogging(sys.stdout)
 
     application = MyApplication(

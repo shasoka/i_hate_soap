@@ -9,8 +9,10 @@ class ConnectionManager:
         await websocket.accept()
         self.active_connections[uid] = websocket
 
-    def disconnect(self, uid: str):
-        del self.active_connections[uid]
+    async def disconnect(self, websocket: WebSocket, uid: str):
+        await websocket.close()
+        if uid in self.active_connections:
+            del self.active_connections[uid]
 
 
 connection_manager = ConnectionManager()

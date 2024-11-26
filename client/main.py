@@ -9,4 +9,5 @@ if __name__ == "__main__":
         host=SOAP_CLNT_HOST,
         port=SOAP_CLNT_PORT,
         reload=True,
+        log_level=10,
     )

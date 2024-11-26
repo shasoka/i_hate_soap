@@ -201,7 +201,7 @@ class FileService(Service):
         clock: IReactorTime,
     ) -> None:
         total_size = len(content)
-        n_chunks = min(10, total_size)  # 10 чанков, если всего >= 10 байт
+        n_chunks = min(5, total_size)  # 5 чанков, если всего >= 5 байт
         chunk_size = total_size // n_chunks
         uploaded = 0
 
@@ -214,11 +214,12 @@ class FileService(Service):
                 f.write(chunk)
                 uploaded += len(chunk)
 
-                FileService._notify_upload_progress(
-                    uid,
-                    uploaded,
-                    total_size,
-                )
+                if filepath.stem != "nevernotify" and filepath.suffix != ".me":
+                    FileService._notify_upload_progress(
+                        uid,
+                        uploaded,
+                        total_size,
+                    )
 
                 with open(temp_file, "r+b") as temp:
                     temp.truncate(total_size - uploaded)

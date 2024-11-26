@@ -13,8 +13,12 @@ async def websocket_endpoint(
     uid: str,
 ):
     await connection_manager.connect(websocket, uid)
-    try:
-        while True:
-            await websocket.receive_text()
-    except WebSocketDisconnect:
-        connection_manager.disconnect(uid)
+
+    while True:
+        try:
+            await websocket.receive_json()
+        except WebSocketDisconnect:
+            try:
+                await connection_manager.disconnect(websocket, uid)
+            finally:
+                break
