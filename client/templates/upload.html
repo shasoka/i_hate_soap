@@ -40,7 +40,7 @@
 	    dialog.innerHTML = `
             <p>${message}</p>
             <button id="closeWebSocket" class="modal-button">Закрыть WebSocket</button>
-            <button id="closeAndRedirect" class="modal-button">Закрыть и перейти</button>
+            <button id="closeAndRedirect" class="modal-button">Закрыть WebSocket и проверить последнюю загрузку</button>
         `;
 
 	    modal.appendChild(dialog);
@@ -61,7 +61,7 @@
     function startTimeout() {
 	    clearTimeout(timeoutId);
 	    timeoutId = setTimeout(() => {
-		    showAlert("Превышено время ожидания ответа от сервера. Закрываю WebSocket 🔒");
+		    showAlert("Превышено время ожидания ответа от сервера. Как поступим? 🤔");
 	    }, WS_TIMEOUT);
     }
 

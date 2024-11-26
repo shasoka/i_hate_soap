@@ -14,7 +14,7 @@ from spyne.error import (
 )
 from spyne.model.binary import _FileValue
 from spyne.service import Service
-from sqlalchemy import desc
+from sqlalchemy import desc, asc
 from twisted.internet import defer, reactor
 from twisted.internet.interfaces import IReactorTime
 from twisted.internet.task import deferLater
@@ -311,7 +311,9 @@ class FileService(Service):
     def get_all_files_csv(ctx: Service):
         authenticate_user(ctx)
 
-        files: list[File] = ctx.udc.session.query(File).all()
+        files: list[File] = (
+            ctx.udc.session.query(File).order_by(asc(File.id)).all()
+        )
 
         if not files:
             raise ResourceNotFoundError(

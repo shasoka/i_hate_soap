@@ -50,7 +50,7 @@ class MyApplication(Application):
             raise InternalError(e)
 
 
-def shutdown_gracefully(signum, frame):
+def shutdown_gracefully(signum, frame):  # noqa
     log.msg(
         f"[LIFESPAN] Received signal {signum}, shutting down gracefully..."
     )
