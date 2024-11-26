@@ -1,3 +1,4 @@
+import logging
 from io import BytesIO
 
 from fastapi import UploadFile
@@ -29,7 +30,7 @@ def element_to_string(et_elem: _Element | str) -> str | _Element:
                 )
             et_elem: _Element = etree.fromstring(xml_str_without_declaration)
         except Exception as e:
-            print(e)
+            logging.log(logging.ERROR, e)
             return et_elem
     try:
         xml_as_str: str = etree.tostring(
@@ -57,7 +58,7 @@ def extract_tag_from_xml(
             if element.tag.endswith(target_tag):
                 return element.text
     except Exception as e:
-        print(f"Ошибка при извлечении токена: {e}")
+        logging.log(logging.ERROR, f"Ошибка при извлечении токена: {e}")
     return ""
 
 
@@ -72,5 +73,5 @@ def extract_tag_from_str(
             if element.tag.endswith(target_tag):
                 return element.text
     except Exception as e:
-        print(f"Ошибка при извлечении токена: {e}")
+        logging.log(logging.ERROR, f"Ошибка при извлечении токена: {e}")
     return ""

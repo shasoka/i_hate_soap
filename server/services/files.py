@@ -169,8 +169,18 @@ class FileService(Service):
         return filepath
 
     @staticmethod
-    def _notify_upload_progress(uid: str, uploaded: int, total: int) -> None:
-        progress = {"uid": uid, "uploaded": uploaded, "total": total}
+    def _notify_upload_progress(
+        uid: str,
+        filename: str,
+        uploaded: int,
+        total: int,
+    ) -> None:
+        progress = {
+            "uid": uid,
+            "filename": filename,
+            "uploaded": uploaded,
+            "total": total,
+        }
         try:
             requests.post(
                 f"http://localhost:7999/upload/{uid}",
@@ -214,11 +224,14 @@ class FileService(Service):
                 f.write(chunk)
                 uploaded += len(chunk)
 
-                if filepath.stem != "nevernotify" and filepath.suffix != ".me":
+                if (fname := filepath.stem) != "nevernotify" and (
+                    fext := filepath.suffix
+                ) != ".me":
                     FileService._notify_upload_progress(
-                        uid,
-                        uploaded,
-                        total_size,
+                        uid=uid,
+                        filename=f"{fname}{fext}",
+                        uploaded=uploaded,
+                        total=total_size,
                     )
 
                 with open(temp_file, "r+b") as temp:

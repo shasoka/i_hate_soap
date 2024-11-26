@@ -1,7 +1,6 @@
 from spyne import (
     ResourceAlreadyExistsError,
     String,
-    Boolean,
     rpc,
 )
 from spyne.service import Service
@@ -12,7 +11,6 @@ from core.security import (
     hash_password,
     validate_password,
     encode_jwt,
-    get_current_auth_user,
     AuthFault,
 )
 
@@ -100,27 +98,3 @@ class UserService(Service):
             ),
             token_type="Bearer",
         )
-
-    @rpc(
-        String(
-            min_occurs=1,
-            nillable=False,
-        ),  # username
-        _returns=Boolean(
-            nillable=False,
-            min_occurs=1,
-        ),
-    )
-    def check_token(
-        ctx: Service,
-        token: str,
-    ):
-        try:
-            if get_current_auth_user(
-                ctx=ctx,
-                token=token,
-            ):
-                return True
-            return False
-        except Exception:
-            return False
