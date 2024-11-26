@@ -16,7 +16,7 @@ def gen_auth_header(value: str):
 
 
 plugin = HistoryPlugin()
-users_client = SOAPClient(
+main_client = SOAPClient(
     wsdl=WSDL_URL,
     plugins=[plugin],
 )

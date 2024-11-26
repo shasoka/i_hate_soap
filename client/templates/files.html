@@ -10,6 +10,12 @@
     <button type="submit">Загрузить файл</button>
 </form>
 
+<hr style="margin: 20px 0; border: 1px solid #ccc;">
+
+<button class="yellowButton"
+        onclick="viewLastFile()">Просмотреть последний 📂</button>
+
+
 {% if soap_body %}
     <h2>SOAP Request 👤</h2>
     <pre><code id="soapRequest"
@@ -63,6 +69,10 @@
 
     function seeStatus() {
 	    window.location.href = "{{ upload_url }}";
+    }
+
+    function viewLastFile() {
+	    window.location.href = '/last_upload';
     }
 </script>
 

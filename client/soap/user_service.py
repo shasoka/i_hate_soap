@@ -1,6 +1,6 @@
 from lxml.etree import _Element
 
-from .zeep import users_client, plugin
+from .zeep import main_client, plugin
 
 
 def register_user(
@@ -13,7 +13,7 @@ def register_user(
 ):
     success: bool = False
     try:
-        users_client.service.register(username=username, password=password)
+        main_client.service.register(username=username, password=password)
         success: bool = True
     finally:
         request_body = plugin.last_sent["envelope"]
@@ -31,7 +31,7 @@ def login_user(
 ):
     success: bool = False
     try:
-        users_client.service.login(username=username, password=password)
+        main_client.service.login(username=username, password=password)
         success: bool = True
     finally:
         request_body = plugin.last_sent["envelope"]

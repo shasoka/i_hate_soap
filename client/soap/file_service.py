@@ -8,7 +8,7 @@ from zeep import Client
 
 from config import WSDL_URL
 from .utils import fastapi_file_type_to_bytesio
-from .zeep import gen_auth_header, plugin
+from .zeep import gen_auth_header, plugin, main_client
 
 
 def upload_file(
@@ -45,3 +45,16 @@ def upload_file(
     request_body = plugin.last_sent["envelope"]
     response_body = response.content.decode("utf-8")
     return request_body, response_body, success
+
+
+def get_last(header: str) -> (_Element, _Element, bool):
+    success: bool = True
+    try:
+        main_client.service.get_last_uploaded_file(
+            _soapheaders=[gen_auth_header(header)],
+        )
+        success = True
+    finally:
+        request_body = plugin.last_sent["envelope"]
+        response_body = plugin.last_received["envelope"]
+        return request_body, response_body, success

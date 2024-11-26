@@ -2,7 +2,7 @@ from fastapi import APIRouter, Request, UploadFile, WebSocket, HTTPException
 from fastapi.responses import HTMLResponse
 from starlette.responses import RedirectResponse
 
-from soap.file_service import upload_file
+from soap.file_service import upload_file, get_last
 from soap.utils import element_to_string, extract_tag_from_str
 from websocket.manager import connection_manager
 from . import templates
@@ -77,3 +77,25 @@ async def post_upload(uid: str, callback_data: dict):
         return {"status": "updated"}
 
     raise HTTPException(status_code=404, detail="Not found")
+
+
+@router.get("/last_upload")
+def get_last_upload(request: Request):
+    body, response, success = get_last(
+        header=str(request.cookies.get("token_type"))
+        + " "
+        + str(request.cookies.get("access_token")),
+    )
+
+    formatted_request = element_to_string(body)
+    formatted_response = element_to_string(response)
+
+    return templates.TemplateResponse(
+        "last_upload.html",
+        {
+            "request": request,
+            "soap_body": formatted_request,
+            "soap_response": formatted_response,
+            "success": success,
+        },
+    )
