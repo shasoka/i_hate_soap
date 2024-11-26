@@ -10,11 +10,12 @@ CREATE TABLE files
     id          SERIAL PRIMARY KEY,
     user_id     INTEGER REFERENCES users (id),
     filename    VARCHAR(255) NOT NULL,
-    upload_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    upload_time TIMESTAMP DEFAULT now()
 );
 
 CREATE TABLE server_uptime
 (
     id         SERIAL PRIMARY KEY,
-    start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    start_time TIMESTAMP DEFAULT now(),
+    death_time TIMESTAMP
 );

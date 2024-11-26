@@ -1,4 +1,6 @@
+import csv
 import datetime
+import io
 import json
 import uuid
 from pathlib import Path
@@ -10,6 +12,7 @@ from spyne.error import (
     ArgumentError,
     ResourceNotFoundError,
 )
+from spyne.model.binary import _FileValue
 from spyne.service import Service
 from sqlalchemy import desc
 from twisted.internet import defer, reactor
@@ -35,10 +38,19 @@ class FileService(Service):
     # --------------- File Uploading --------------- #
 
     @rpc(
-        String(),  # filename
-        ByteArray(),  # cid (=> content: bytes from MTOM)
-        _returns=String(min_occurs=1),
-        # Here should be _mtom=True but sometimes it corrupts outcoming
+        String(
+            min_occurs=1,
+            nillable=False,
+        ),  # filename
+        ByteArray(
+            min_occurs=1,
+            nillable=False,
+        ),  # cid (=> content: bytes
+        # from MTOM)
+        _returns=String(
+            min_occurs=1,
+            nillable=False,
+        ),  # Here should be _mtom=True but sometimes it corrupts outcoming
         # envelope so in the last closing tag it looks like '</soap1' :/
         # Anyway Spyne converts MTOM attachments by their CID and MIMES to
         # base64 before proceeding the request even without _mtom=True.
@@ -278,7 +290,7 @@ class FileService(Service):
 
     # ---------------------------------------------- #
 
-    @rpc(_returns=File.customize(min_occurs=1))
+    @rpc(_returns=_FileValue.customize(min_occurs=1))
     def get_last_uploaded_file(ctx: Service):
         user: User = authenticate_user(ctx)
 
@@ -293,4 +305,47 @@ class FileService(Service):
         raise ResourceNotFoundError(
             fault_object=user.username,
             fault_string="No files found for user %r.",
+        )
+
+    @rpc(_returns=_FileValue)
+    def get_all_files_csv_mtom(ctx: Service):
+        # authenticate_user(ctx)
+
+        files: list[File] = ctx.udc.session.query(File).all()
+
+        if not files:
+            raise ResourceNotFoundError(
+                fault_object=[],
+                fault_string="No files found. Files: %r",
+            )
+
+        # Создание CSV в памяти
+        output = io.StringIO()
+        writer = csv.writer(output, quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        writer.writerow(
+            (
+                "Id",
+                "UserId",
+                "Filename",
+                "UploadTime",
+            )
+        )
+
+        for file in files:
+            writer.writerow(
+                (
+                    file.id,
+                    file.user_id,
+                    file.filename,
+                    file.upload_time,
+                )
+            )
+
+        csv_data = output.getvalue()
+        csv_bytes = csv_data.encode("utf-8")
+
+        return _FileValue(
+            name="uploads.csv",
+            type="text/csv",
+            data=csv_bytes,
         )
