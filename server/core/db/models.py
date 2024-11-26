@@ -50,7 +50,10 @@ class File(TableModel):
         min_occurs=1,
         default="anonymous_file",
     )
-    upload_time: datetime = SpDateTime()
+    upload_time: datetime = SpDateTime(
+        min_occurs=1,
+        nullable=False,
+    )
 
     user_id: int = SpInteger(
         nullable=False,

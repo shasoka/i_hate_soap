@@ -5,8 +5,13 @@ from pathlib import Path
 
 import requests
 from spyne import rpc, String, ByteArray
-from spyne.error import RequestTooLongError, ArgumentError
+from spyne.error import (
+    RequestTooLongError,
+    ArgumentError,
+    ResourceNotFoundError,
+)
 from spyne.service import Service
+from sqlalchemy import desc
 from twisted.internet import defer, reactor
 from twisted.internet.interfaces import IReactorTime
 from twisted.internet.task import deferLater
@@ -20,12 +25,14 @@ from core.config import (
 )
 from core.db.models import User, File, SessionLocal
 from core.schemas.jwt import AuthHeader
-from core.security import get_current_auth_user
+from core.security import authenticate_user
 
 
 # noinspection PyMethodParameters
 class FileService(Service):
     __in_header__ = AuthHeader
+
+    # --------------- File Uploading --------------- #
 
     @rpc(
         String(),  # filename
@@ -37,7 +44,7 @@ class FileService(Service):
         # base64 before proceeding the request even without _mtom=True.
     )
     def upload_file(ctx: Service, filename: str, content: tuple[bytes]):
-        user = FileService._authenticate_user(ctx)
+        user: User = authenticate_user(ctx)
 
         # Проверки входного файла
         file_content = FileService._validate_file(filename, content)
@@ -63,16 +70,6 @@ class FileService(Service):
             f"File '{filename}' currently uploading. You can check upload "
             f"status at /upload/{uid}."
         )
-
-    @staticmethod
-    def _authenticate_user(ctx: Service) -> User:
-        try:
-            return get_current_auth_user(
-                ctx, ctx.in_header.Authorization if ctx.in_header else None
-            )
-        except Exception:
-            log.msg("[AUTH] User authentication failed.")
-            raise
 
     @staticmethod
     def _validate_file(filename: str, content: tuple[bytes]) -> bytes:
@@ -278,3 +275,22 @@ class FileService(Service):
             log.msg(f"[DEFERRED:{uid}] Error while saving file to DB: {e}")
         finally:
             session.close()
+
+    # ---------------------------------------------- #
+
+    @rpc(_returns=File.customize(min_occurs=1))
+    def get_last_uploaded_file(ctx: Service):
+        user: User = authenticate_user(ctx)
+
+        if last_file := (
+            ctx.udc.session.query(File)
+            .filter(File.user_id == user.id)
+            .order_by(desc(File.upload_time))
+            .first()
+        ):
+            return last_file
+
+        raise ResourceNotFoundError(
+            fault_object=user.username,
+            fault_string="No files found for user %r.",
+        )

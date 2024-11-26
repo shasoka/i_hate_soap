@@ -5,6 +5,7 @@ import jwt
 from jwt import InvalidTokenError
 from spyne import Fault, InvalidCredentialsError
 from spyne.service import Service
+from twisted.python import log
 
 from core.config import (
     JWT_PRIVATE_KEY,
@@ -42,7 +43,7 @@ def decode_jwt(token: str) -> dict:
     return jwt.decode(token, JWT_PUBLIC_KEY, algorithms=[JWT_ALGORITHM])
 
 
-def get_current_auth_user(ctx: Service, token: str) -> User:
+def _get_current_auth_user(ctx: Service, token: str) -> User:
     if token is None:
         raise CredentialsFault
 
@@ -60,3 +61,13 @@ def get_current_auth_user(ctx: Service, token: str) -> User:
             .filter(User.id == int(payload["sub"]))
             .first()
         )
+
+
+def authenticate_user(ctx: Service) -> User:
+    try:
+        return _get_current_auth_user(
+            ctx, ctx.in_header.Authorization if ctx.in_header else None
+        )
+    except Exception:
+        log.msg("[AUTH] User authentication failed.")
+        raise

@@ -6,6 +6,7 @@ from pymtom_xop import MtomAttachment, MtomTransport
 from requests import Response
 from zeep import Client
 
+from config import WSDL_URL
 from .utils import fastapi_file_type_to_bytesio
 from .zeep import gen_auth_header, plugin
 
@@ -26,14 +27,14 @@ def upload_file(
     bytes_io.close()
 
     # Создание MTOM-клиента
-    mtom_client = Client(
-        wsdl="http://localhost:8000/?wsdl",
+    files_client = Client(
+        wsdl=WSDL_URL,
         transport=mtom_transport,
         plugins=[plugin],
     )
 
-    with mtom_client.settings(raw_response=True):
-        response: Response = mtom_client.service.upload_file(
+    with files_client.settings(raw_response=True):
+        response: Response = files_client.service.upload_file(
             filename=file.filename,
             content=attachment.get_cid(),
             _soapheaders=[gen_auth_header(header)],

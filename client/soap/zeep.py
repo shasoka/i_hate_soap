@@ -2,7 +2,7 @@ from lxml import etree
 from zeep import Client as SOAPClient
 from zeep.plugins import HistoryPlugin
 
-from config import WSDL_URL, MAIN_TNS
+from config import MAIN_TNS, WSDL_URL
 
 
 def gen_auth_header(value: str):
@@ -16,7 +16,7 @@ def gen_auth_header(value: str):
 
 
 plugin = HistoryPlugin()
-default_client = SOAPClient(
+users_client = SOAPClient(
     wsdl=WSDL_URL,
     plugins=[plugin],
 )
