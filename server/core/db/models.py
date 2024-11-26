@@ -46,7 +46,7 @@ class File(TableModel):
         min_occurs=1,
         default="anonymous_file",
     )
-    upload_time: datetime = SpDateTime(
+    upload_time: datetime.datetime = SpDateTime(
         min_occurs=1,
         nullable=False,
     )
@@ -89,11 +89,11 @@ class ServerUptime(TableModel):
         nullable=False,
         min_occurs=1,
     )
-    start_time: datetime = SpDateTime(
+    start_time: datetime.datetime = SpDateTime(
         min_occurs=1,
         nullable=False,
     )
-    death_time: datetime = SpDateTime(
+    death_time: datetime.datetime = SpDateTime(
         min_occurs=1,
         nullable=False,
     )

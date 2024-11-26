@@ -17,7 +17,7 @@ def on_startup():
 
 def on_shutdown():
     with SessionLocal() as session:
-        server_uptime = (
+        server_uptime: ServerUptime = (
             session.query(ServerUptime)
             .order_by(
                 desc(

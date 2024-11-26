@@ -21,6 +21,7 @@ from core.config import (
 from core.db.defctx import on_method_call
 from core.db.lifespan import on_shutdown, on_startup
 from services.files import FileService
+from services.uptime import UptimeService
 from services.users import UserService
 
 
@@ -64,7 +65,11 @@ if __name__ == "__main__":
     log.startLogging(sys.stdout)
 
     application = MyApplication(
-        [UserService, FileService],
+        [
+            UserService,
+            FileService,
+            UptimeService,
+        ],
         tns=MAIN_TNS,
         in_protocol=Soap11(validator="lxml"),
         out_protocol=Soap11(),
